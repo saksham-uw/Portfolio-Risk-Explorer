@@ -1,0 +1,27 @@
+rules:
+  - id: PFAS_EXCLUSION
+    name: "PFAS exclusion present"
+    must_include:
+      - "PFAS"
+      - "exclusion"
+
+  - id: SRCC_72H
+    name: "SRCC has 72 consecutive hours"
+    must_include_any:
+      - "SRCC"
+      - "strikes riots and civil commotion"
+    must_include:
+      - "72"
+      - "consecutive hour"
+
+  - id: ARBITRATION_CLAUSE
+    name: "Arbitration clause exists"
+    must_include_any:
+      - "arbitration"
+      - "arbitral tribunal"
+
+  - id: RADIUS_DEFINED
+    name: "Radius defined (km or miles)"
+    must_include_any: ["radius", "within", "distance"]
+    must_include: ["km", "kilometer", "mile", "miles"]
+
