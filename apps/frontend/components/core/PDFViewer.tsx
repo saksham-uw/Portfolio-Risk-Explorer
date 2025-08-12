@@ -1,44 +1,45 @@
 "use client";
 
 import * as React from "react";
-// Use the ESM build for tree-shaking
+// ESM build
 import * as pdfjs from "pdfjs-dist";
-// ⬇️ Instead of ?worker, create a real Worker from the worker file
+
+// Spin up a real module worker for Next.js
 const worker = new Worker(
   new URL("pdfjs-dist/build/pdf.worker.min.mjs", import.meta.url),
   { type: "module" }
 );
-
-// Tell pdf.js to use our worker instance
-// (You can also set GlobalWorkerOptions.workerSrc to a URL string,
-// but workerPort is the cleanest in Next.)
-(pdfjs as any).GlobalWorkerOptions.workerPort = worker;
+// Tell pdf.js to use our worker
+// (alternative is GlobalWorkerOptions.workerSrc = "...", but workerPort is cleanest)
+;(pdfjs as any).GlobalWorkerOptions.workerPort = worker;
 
 import { API_BASE } from "@/lib/api";
 
-type Props = { docId: number; fileName: string };
+type Props = { docId: number };
 
-export default function PDFViewer({ docId, fileName }: Props) {
+export default function PDFViewer({ docId }: Props) {
   const canvasRef = React.useRef<HTMLCanvasElement | null>(null);
 
   React.useEffect(() => {
     let cancelled = false;
 
     (async () => {
-      const url = `${API_BASE}/documents/${docId}/file?filename=${encodeURIComponent(
-        fileName
-      )}`;
+      // Server route: GET /api/documents/{doc_id}/file
+      const url = `${API_BASE}/documents/${docId}/file`;
 
-      // Fetch as ArrayBuffer so pdf.js can stream/decode
+      // Send API key via header — FastAPI Header(...) maps to "X-Api-Key"
       const res = await fetch(url, {
-        headers: { "X-API-KEY": process.env.NEXT_PUBLIC_API_KEY ?? "" },
+        headers: { "X-Api-Key": process.env.NEXT_PUBLIC_VIEW_TOKEN ?? "" },
       });
+      if (!res.ok) throw new Error(`PDF fetch failed: ${res.statusText}`);
+
       const buf = await res.arrayBuffer();
 
       const loadingTask = (pdfjs as any).getDocument({ data: buf });
       const pdf = await loadingTask.promise;
       if (cancelled) return;
 
+      // Render page 1 (you can add paging later)
       const page = await pdf.getPage(1);
       const viewport = page.getViewport({ scale: 1.2 });
 
@@ -53,7 +54,7 @@ export default function PDFViewer({ docId, fileName }: Props) {
     return () => {
       cancelled = true;
     };
-  }, [docId, fileName]);
+  }, [docId]);
 
   return (
     <div className="w-full overflow-auto rounded border bg-background p-2">

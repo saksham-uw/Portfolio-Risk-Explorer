@@ -1,5 +1,5 @@
-import ClientDashboard from "./_components/ClientDashboard";
+import EnhancedDashboard from "./_components/EnhancedDashboard";
 
 export default function Page() {
-  return <ClientDashboard />;
+  return <EnhancedDashboard />;
 }

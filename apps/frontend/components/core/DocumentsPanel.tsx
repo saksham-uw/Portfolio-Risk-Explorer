@@ -1,46 +1,72 @@
 "use client";
+
 import * as React from "react";
 import { api } from "@/lib/api";
+import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
+import { Table, TableHeader, TableRow, TableHead, TableBody, TableCell } from "@/components/ui/table";
+import { Button } from "@/components/ui/button";
 
-export function DocumentsPanel({ onPick }: { onPick?: (id:number)=>void }) {
-  const [docs, setDocs] = React.useState<Awaited<ReturnType<typeof api.documents>> | null>(null);
-  const [err, setErr] = React.useState("");
+type DocRow = { id: number; filename: string; uploaded_at: string };
+
+export function DocumentsPanel({
+  onView,
+  refreshToken,
+}: {
+  onView: (id: number) => void;
+  refreshToken: number;
+}) {
+  const [docs, setDocs] = React.useState<DocRow[]>([]);
+  const [loading, setLoading] = React.useState(false);
 
   React.useEffect(() => {
-    api.documents().then(setDocs).catch(e=>setErr(String(e)));
-  }, []);
-
-  if (err) return <div className="text-red-600 text-sm">{err}</div>;
-  if (!docs) return <div className="text-sm text-muted-foreground">Loading documents…</div>;
+    setLoading(true);
+    api.documents()
+      .then((d) => setDocs(d.documents ?? d))
+      .finally(() => setLoading(false));
+  }, [refreshToken]);
 
   return (
-    <div className="rounded-xl border overflow-hidden">
-      <table className="w-full text-sm">
-        <thead className="bg-muted">
-          <tr>
-            <th className="px-3 py-2 text-left">ID</th>
-            <th className="px-3 py-2 text-left">Filename</th>
-            <th className="px-3 py-2 text-left">Uploaded</th>
-            <th className="px-3 py-2 text-left">Clauses</th>
-            <th className="px-3 py-2"></th>
-          </tr>
-        </thead>
-        <tbody>
-          {docs.documents.map(d => (
-            <tr key={d.id} className="border-t">
-              <td className="px-3 py-2">{d.id}</td>
-              <td className="px-3 py-2">{d.filename}</td>
-              <td className="px-3 py-2">{new Date(d.uploaded_at).toLocaleString()}</td>
-              <td className="px-3 py-2">{d.clause_count}</td>
-              <td className="px-3 py-2">
-                <button className="border rounded px-2 py-1" onClick={()=>onPick?.(d.id)}>
-                  View
-                </button>
-              </td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
-    </div>
+    <Card>
+      <CardHeader>
+        <CardTitle>Documents</CardTitle>
+      </CardHeader>
+      <CardContent>
+        <div className="overflow-hidden rounded-md border">
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>ID</TableHead>
+                <TableHead>Filename</TableHead>
+                <TableHead>Uploaded</TableHead>
+                <TableHead className="text-right">Open</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {docs.map((d) => (
+                <TableRow key={d.id}>
+                  <TableCell>{d.id}</TableCell>
+                  <TableCell className="max-w-[520px] truncate">{d.filename}</TableCell>
+                  <TableCell>{new Date(d.uploaded_at).toLocaleString()}</TableCell>
+                  <TableCell className="text-right">
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={() => onView(d.id)}
+                    >
+                      View PDF
+                    </Button>
+                  </TableCell>
+                </TableRow>
+              ))}
+              {(!loading && docs.length === 0) && (
+                <TableRow>
+                  <TableCell colSpan={4} className="text-center">No documents yet.</TableCell>
+                </TableRow>
+              )}
+            </TableBody>
+          </Table>
+        </div>
+      </CardContent>
+    </Card>
   );
 }

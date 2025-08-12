@@ -56,9 +56,21 @@ export const api = {
     anomalies: (k = 10) => getJSON<Anomalies>(`/anomalies?k=${k}`),
 
     documents: () => getJSON<DocumentsList>("/documents"),
-    
+
     docClauses: (id: number, limit = 100, offset = 0) =>
         getJSON<{ document_id: number; clauses: { id: number; page_number: number; text: string }[] }>(
             `/documents/${id}/clauses?limit=${limit}&offset=${offset}`
         ),
+    upload: (file: File) => {
+        const fd = new FormData();
+        fd.append("file", file);
+        return fetch(`${API_BASE}/upload`, { method: "POST", body: fd }).then(() => true);
+    },
+    streamUrl: (docId: number) => {
+        const key = process.env.NEXT_PUBLIC_VIEW_TOKEN ?? "";
+        // This endpoint serves decrypted bytes with Range support
+        return `${API_BASE}/doc/${docId}/stream?x-api-key=${encodeURIComponent(
+            key
+        )}`;
+    },
 };

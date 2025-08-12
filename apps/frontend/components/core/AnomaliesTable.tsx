@@ -1,47 +1,79 @@
 "use client";
+
 import * as React from "react";
 import { api } from "@/lib/api";
-import Link from "next/link";
+import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
+import { Table, TableHeader, TableRow, TableHead, TableBody, TableCell } from "@/components/ui/table";
+import { Button } from "@/components/ui/button";
 
-export function AnomaliesTable({ refreshToken }: { refreshToken?: number }) {
-    const [data, setData] = React.useState<Awaited<ReturnType<typeof api.anomalies>> | null>(null);
-    const [err, setErr] = React.useState("");
+type AnomalyRow = {
+  id: number;
+  document_id: number;
+  page_number: number;
+  distance: number;
+  text: string;
+};
+type AnomaliesRes = { count: number; results: AnomalyRow[] };
 
-    React.useEffect(() => {
-        setErr("");
-        setData(null);
-        api.anomalies(10).then(setData).catch(e => setErr(String(e)));
-    }, [refreshToken]);
+export function AnomaliesTable({ refreshToken }: { refreshToken: number }) {
+  const [data, setData] = React.useState<AnomaliesRes | null>(null);
+  const [loading, setLoading] = React.useState(false);
 
-    if (err) return <div className="text-red-600 text-sm">{err}</div>;
-    if (!data) return <div className="text-sm text-muted-foreground">Loading anomalies…</div>;
+  React.useEffect(() => {
+    setLoading(true);
+    api.anomalies(10)
+      .then(setData)
+      .finally(() => setLoading(false));
+  }, [refreshToken]);
 
-    return (
-        <div className="rounded-xl border overflow-hidden">
-            <table className="w-full text-sm">
-                <thead className="bg-muted">
-                    <tr>
-                        <th className="px-3 py-2 text-left">Doc</th>
-                        <th className="px-3 py-2 text-left">Page</th>
-                        <th className="px-3 py-2 text-left">Distance</th>
-                        <th className="px-3 py-2 text-left">Snippet</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {data.results.map(r => (
-                        <tr key={r.id} className="border-t">
-                            <td className="px-3 py-2">
-                                <Link className="underline" href={`/doc/${r.document_id}/viewer?page=${r.page_number}`}>
-                                    {r.document_id}
-                                </Link>
-                            </td>
-                            <td className="px-3 py-2">{r.page_number}</td>
-                            <td className="px-3 py-2 tabular-nums">{r.distance.toFixed(3)}</td>
-                            <td className="px-3 py-2">{r.text}</td>
-                        </tr>
-                    ))}
-                </tbody>
-            </table>
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle>Risk Anomalies</CardTitle>
+      </CardHeader>
+      <CardContent>
+        <div className="overflow-hidden rounded-md border">
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>ID</TableHead>
+                <TableHead>Doc</TableHead>
+                <TableHead>Page</TableHead>
+                <TableHead>Distance</TableHead>
+                <TableHead>Snippet</TableHead>
+                <TableHead className="text-right">Open</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {(data?.results ?? []).map((r) => (
+                <TableRow key={r.id}>
+                  <TableCell>{r.id}</TableCell>
+                  <TableCell>{r.document_id}</TableCell>
+                  <TableCell>{r.page_number}</TableCell>
+                  <TableCell className="tabular-nums">
+                    {r.distance.toFixed(3)}
+                  </TableCell>
+                  <TableCell className="max-w-[520px] truncate">{r.text}</TableCell>
+                  <TableCell className="text-right">
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={() => (window.location.href = `/doc/${r.document_id}/viewer`)}
+                    >
+                      View
+                    </Button>
+                  </TableCell>
+                </TableRow>
+              ))}
+              {(!loading && (data?.results ?? []).length === 0) && (
+                <TableRow>
+                  <TableCell colSpan={6} className="text-center">No anomalies found.</TableCell>
+                </TableRow>
+              )}
+            </TableBody>
+          </Table>
         </div>
-    );
+      </CardContent>
+    </Card>
+  );
 }
