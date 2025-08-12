@@ -1,8 +1,28 @@
-import { SidebarProvider } from "@/components/ui/sidebar";
-import "@/app/globals.css";
+"use client"
 
-export default function Layout({ children }: { children: React.ReactNode }) {
+import { ThemeProvider } from "@/components/theme-provider"
+import { cn } from "@/lib/utils"
+
+export default function DashboardLayout({
+  children,
+}: {
+  children: React.ReactNode
+}) {
   return (
-    <SidebarProvider>{children}</SidebarProvider>
-  );
+    <ThemeProvider
+      attribute="class"
+      defaultTheme="system"
+      enableSystem
+      disableTransitionOnChange
+    >
+      <div className="min-h-screen bg-background">
+        <div className={cn(
+          "container mx-auto p-4 md:p-6",
+          "min-h-[calc(100vh-4rem)]" // Adjust based on your header height
+        )}>
+          {children}
+        </div>
+      </div>
+    </ThemeProvider>
+  )
 }
