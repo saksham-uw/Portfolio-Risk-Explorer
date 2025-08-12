@@ -26,7 +26,7 @@ export default function EnhancedDashboard() {
     
     setIsSearching(true);
     try {
-      const results = await api.search(searchQuery);
+      const results = await api.search(searchQuery, 20);
       setSearchResults(results);
       setActiveTab("search");
     } catch (error) {
@@ -81,7 +81,7 @@ export default function EnhancedDashboard() {
         <TabsList className="grid w-full grid-cols-2 sm:grid-cols-4">
           <TabsTrigger value="overview">Overview</TabsTrigger>
           <TabsTrigger value="search" disabled={searchResults?.results.length === 0}>
-            Search {searchResults?.results.length > 0 && `(${searchResults?.results.length})`}
+            Search {searchResults?.results && `(${searchResults?.results.length})`}
           </TabsTrigger>
           <TabsTrigger value="documents">Documents</TabsTrigger>
           <TabsTrigger value="anomalies">Anomalies</TabsTrigger>
@@ -104,7 +104,7 @@ export default function EnhancedDashboard() {
               <CardTitle>Search Results</CardTitle>
             </CardHeader>
             <CardContent>
-              {searchResults?.results?.length > 0 ? (
+              {searchResults?.results ? (
                 <SearchResultsTable results={searchResults} />
               ) : (
                 <p className="text-muted-foreground">No search results yet. Enter a query above.</p>

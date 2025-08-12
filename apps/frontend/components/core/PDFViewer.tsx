@@ -19,6 +19,7 @@ import {
   TooltipProvider,
 } from "@/components/ui/tooltip";
 import { API_BASE } from "@/lib/api";
+import { Home } from "lucide-react";
 
 type Props = { docId: number };
 
@@ -154,6 +155,7 @@ export default function PDFViewer({ docId }: Props) {
       {/* Toolbar */}
       <div className="flex items-center gap-2 p-2">
         <TooltipProvider>
+            <Button variant="outline" onClick={() => window.location.href = `/dashboard`}><Home /></Button>
           <Tooltip>
             <TooltipTrigger asChild>
               <Button size="sm" variant="outline" onClick={goPrev} disabled={!canPrev}>

@@ -5,11 +5,22 @@ import { api } from "@/lib/api";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import {
-  Dialog, DialogTrigger, DialogContent, DialogHeader, DialogTitle, DialogFooter,
+  Dialog,
+  DialogTrigger,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 
-export function UploadPanel({ onUploaded }: { onUploaded: () => void }) {
+export function UploadPanel({
+  onUploaded,
+  children,
+}: {
+  onUploaded: () => void;
+  children: React.ReactNode; // trigger button
+}) {
   const [open, setOpen] = React.useState(false);
   const [file, setFile] = React.useState<File | null>(null);
   const [busy, setBusy] = React.useState(false);
@@ -23,7 +34,7 @@ export function UploadPanel({ onUploaded }: { onUploaded: () => void }) {
       setOpen(false);
       onUploaded();
     } catch (e: any) {
-      toast.error(e.message || "Upload failed");
+      toast.error(e?.message || "Upload failed");
     } finally {
       setBusy(false);
     }
@@ -31,9 +42,7 @@ export function UploadPanel({ onUploaded }: { onUploaded: () => void }) {
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger asChild>
-        <Button variant="outline">Upload</Button>
-      </DialogTrigger>
+      <DialogTrigger asChild>{children}</DialogTrigger>
       <DialogContent>
         <DialogHeader>
           <DialogTitle>Upload PDF</DialogTitle>
