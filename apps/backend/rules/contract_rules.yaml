@@ -1,27 +1,91 @@
 rules:
+  # --- PFAS exclusion ---------------------------------------------------------
   - id: PFAS_EXCLUSION
     name: "PFAS exclusion present"
+    must_include_any:
+      # Core term + common long forms (incl. hyphen variants)
+      - "pfas"
+      - "per and polyfluoroalkyl substances"
+      - "per- and polyfluoroalkyl substances"
+      - "perfluoroalkyl"
+      - "polyfluoroalkyl"
+      # Some policies say “pfas substances”
+      - "pfas substances"
     must_include:
-      - "PFAS"
+      # Make sure it’s an exclusion, not just a mention
       - "exclusion"
 
+  # --- SRCC presence (Strikes, Riots & Civil Commotion) -----------------------
+  - id: SRCC_PRESENT
+    name: "SRCC referenced"
+    must_include_any:
+      - "srcc"
+      - "s.r.c.c."
+      - "strikes, riots and civil commotion"
+      - "strikes riots and civil commotion"
+      - "riot and civil commotion"
+      - "civil commotion"
+
+  # --- 72-hour clause (generic hours clause used with CAT/SRCC/etc.) ----------
+  - id: HOURS_72_CLAUSE
+    name: "72 consecutive hours clause present"
+    must_include_any:
+      # Numeric & word variants you’ll see in policy wording
+      - "72 consecutive hours"
+      - "72 hours"
+      - "72-hour"
+      - "72 hr"
+      - "seventy-two (72) hours"
+      - "seventy two (72) hours"
+      - "seventy-two hours"
+    must_include:
+      # This helps avoid “within 72 hours” (notification) false-positives
+      - "consecutive"
+
+  # (If you insist on the original combined rule, keep it too, but it’s weaker
+  # with this schema. Better to keep the two atomic rules above and AND them in UI.)
   - id: SRCC_72H
     name: "SRCC has 72 consecutive hours"
     must_include_any:
-      - "SRCC"
+      - "srcc"
       - "strikes riots and civil commotion"
     must_include:
       - "72"
-      - "consecutive hour"
+      - "consecutive"
+      - "hour"
 
+  # --- Arbitration ------------------------------------------------------------
   - id: ARBITRATION_CLAUSE
     name: "Arbitration clause exists"
     must_include_any:
       - "arbitration"
       - "arbitral tribunal"
+      - "binding arbitration"
+      - "arbitrate"
+  - id: ARBITRATION_PROVIDER
+    name: "Arbitration provider specified (AAA/JAMS)"
+    must_include_any:
+      - "american arbitration association"
+      - "aaa"
+      - "jams"
 
+  # --- Radius / distance defined ----------------------------------------------
   - id: RADIUS_DEFINED
     name: "Radius defined (km or miles)"
-    must_include_any: ["radius", "within", "distance"]
-    must_include: ["km", "kilometer", "mile", "miles"]
-
+    must_include_any:
+      # Trigger words that usually co-occur with a numeric + unit
+      - "radius"
+      - "within"
+      - "distance"
+      - "no more than"
+      - "not exceeding"
+    must_include:
+      # Units (covers both US and metric)
+      - "mile"
+      - "miles"
+      - "mi"
+      - "km"
+      - "kilometer"
+      - "kilometre"
+      - "kilometers"
+      - "kilometres"
